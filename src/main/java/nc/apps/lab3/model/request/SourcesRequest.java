@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.HashMap;
 
 @Data
-public class SourcesRequest extends DataRequests{
+public class SourcesRequest extends DataRequest {
     private String category, language, country;
 
     @Override

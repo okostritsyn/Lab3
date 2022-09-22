@@ -1,38 +1,30 @@
 package nc.apps.lab3.util;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.stream.Collectors;
 
 public class HttpUtil {
-    /**
-     * GET запрос по умолчанию в кодировке UTF-8
-     *
-     * @param url
-     * @param params
-     * @return
-     */
+
     public static String get(String url, String params) {
-        return get(url, params, Charset.forName("utf-8"));
+       //return get(url, params, Charset.forName("utf-8"));
+        return getViaRestTemplate(url,params);
     }
 
-    /**
-     * ПОЛУЧИТЬ запрос
-     *
-     * @param url Запросить URL
-     * @return
-     */
     public static String get(String url, String params, Charset charset) {
         String result = "";
 
         if (null != params && !params.equals("")) {
-            if (url.contains("?")) {// содержит ?, добавить & сразу после
+            if (url.contains("?")) {
                 url += "&" + params;
             } else {
                 url += "?" + params;
@@ -42,7 +34,6 @@ public class HttpUtil {
         try {
             URL realUrl = new URL(url);
             conn = (HttpURLConnection) realUrl.openConnection();
-            // Установить общие атрибуты запроса
             conn.setRequestProperty("accept", "*/*");
             conn.setRequestProperty("connection", "Keep-Alive");
             conn.setRequestProperty("user-agent",
@@ -79,6 +70,33 @@ public class HttpUtil {
             }
         }
 
+        return result;
+    }
+
+
+    private static String getViaRestTemplate(String url, String params) {
+        String result = "";
+
+        RestTemplate restTemplate = new RestTemplate();
+        if (null != params && !params.equals("")) {
+            if (url.contains("?")) {
+                url += "&" + params;
+            } else {
+                url += "?" + params;
+            }
+        }
+        try{
+        ResponseEntity<String> response
+                = restTemplate.getForEntity(url, String.class);
+
+        result = "{\"responsecode\": "+response.getStatusCodeValue()+","+
+                "\"message\": "+"\""+response.getStatusCode().getReasonPhrase()+"\","+
+                "\"data\": "+response.getBody()+"}";
+        } catch (HttpClientErrorException e) {
+            result = "{\"responsecode\": "+e.getStatusCode().value()+","+
+                    "\"message\": "+"\""+e.getStatusCode().getReasonPhrase()+"\","+
+                    "\"data\": "+e.getMessage().replace(e.getStatusCode().value()+" "+e.getStatusCode().getReasonPhrase()+":","").trim().replace("\"{","{").replace("}\"","}")+"}";
+        }
         return result;
     }
 }

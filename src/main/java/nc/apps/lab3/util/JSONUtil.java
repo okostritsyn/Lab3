@@ -3,6 +3,9 @@ package nc.apps.lab3.util;
 import nc.apps.lab3.model.Article;
 import nc.apps.lab3.model.DataNewsType;
 import nc.apps.lab3.model.Source;
+import nc.apps.lab3.model.request.DataRequest;
+import nc.apps.lab3.model.request.EverythingRequest;
+import nc.apps.lab3.model.request.TopHeadlinesRequest;
 import nc.apps.lab3.model.response.ArticleResponse;
 import nc.apps.lab3.model.response.DataResponse;
 import nc.apps.lab3.model.response.ErrorResponse;
@@ -43,16 +46,39 @@ public class JSONUtil {
                 statusMessage = (String) value;
             }
         }
+
+        response.setMessage(statusMessage);
+        response.setStatusCode(statusCode);
+
         if (statusCode == 200){
             response.setData(type == DataNewsType.SOURCE?parseJsonSourceData(jsonData):parseJsonArticleData(jsonData));
-            response.setMessage(statusMessage);
-            response.setStatusCode(statusCode);
-        }else{
+         }else{
             response.setData(parseJsonErrorData(jsonData));
-            response.setMessage(statusMessage);
-            response.setStatusCode(statusCode);
         }
         return response;
+    }
+
+    private static DataRequest parseJsonRequest(JSONObject jsonRequest) {
+        Iterator<String> iterator = jsonRequest.keys();
+        DataRequest request = null;
+
+        for (; iterator.hasNext(); ) {
+            String key = iterator.next();
+            Object value;
+            try {
+                value = jsonRequest.get(key);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+            if (key.equals("q") && (value instanceof String)) {
+                request = new EverythingRequest();
+            }
+            if (key.equals("sources") && (value instanceof String)) {
+                request = new TopHeadlinesRequest();
+            }
+        }
+
+        return request;
     }
 
     public static ErrorResponse parseJsonErrorData(JSONObject jsonObject) {

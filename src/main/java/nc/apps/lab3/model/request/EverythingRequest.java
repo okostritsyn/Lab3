@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.HashMap;
 
 @Data
-public class EverythingRequest extends DataRequests{
+public class EverythingRequest extends DataRequest {
     private String q, sources, domains, from, to, language, sortBy, pageSize, page;
 
     @Override

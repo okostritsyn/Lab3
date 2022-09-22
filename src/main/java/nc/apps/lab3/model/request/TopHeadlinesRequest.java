@@ -4,7 +4,7 @@ import lombok.Data;
 import java.util.HashMap;
 
 @Data
-public class TopHeadlinesRequest extends DataRequests{
+public class TopHeadlinesRequest extends DataRequest {
     private String category, sources, q, pageSize, page, country, language;
 
     @Override
