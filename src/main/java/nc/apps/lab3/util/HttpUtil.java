@@ -1,6 +1,8 @@
 package nc.apps.lab3.util;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,14 +15,16 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.stream.Collectors;
 
+@Component
 public class HttpUtil {
 
-    public static String get(String url, String params) {
+    @Cacheable(value = "news", key = "#cacheString")
+    public String get(String url, String params, String cacheString) {
        //return get(url, params, Charset.forName("utf-8"));
         return getViaRestTemplate(url,params);
     }
 
-    public static String get(String url, String params, Charset charset) {
+    public String get(String url, String params, Charset charset) {
         String result = "";
 
         if (null != params && !params.equals("")) {
@@ -74,7 +78,7 @@ public class HttpUtil {
     }
 
 
-    private static String getViaRestTemplate(String url, String params) {
+    private String getViaRestTemplate(String url, String params) {
         String result = "";
 
         RestTemplate restTemplate = new RestTemplate();

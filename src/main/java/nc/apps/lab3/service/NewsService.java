@@ -9,9 +9,11 @@ import nc.apps.lab3.util.JSONUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +25,14 @@ public class NewsService {
     @Autowired
     NewsSettings newsSettings;
 
+    @Autowired
+    HttpUtil httpUtil;
+
     @Async
     public CompletableFuture<DataResponse> getNews(DataRequest request, DataNewsType type) {
         String url = newsSettings.getUrl() + newsSettings.getTypeUrl(type);
         String params = getParamsString(request);
-        String jsonData = HttpUtil.get(url, params);
+        String jsonData = httpUtil.get(url, params, url+params);
         DataResponse response = null;
         try {
             response = JSONUtil.parseJson(new JSONObject(jsonData), type);
@@ -40,12 +45,12 @@ public class NewsService {
 
     private String getParamsString(DataRequest request) {
         HashMap<String,String> hashMapOfFields = request.getParamFields();
-        String params = "apiKey="+newsSettings.getApiKey();
+        StringBuilder params = new StringBuilder("apiKey=" + newsSettings.getApiKey());
 
         for (String key:hashMapOfFields.keySet()) {
-            params = params + "&"+key+"="+hashMapOfFields.get(key);
+            params.append("&").append(key).append("=").append(hashMapOfFields.get(key));
         }
-        return params;
+        return params.toString();
     }
 
     public List<DataResponse> getNewsList(List<DataRequest> requestList,DataNewsType type) throws Throwable {
