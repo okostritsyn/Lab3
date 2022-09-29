@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class Article {
     private Source source;
+    private String id;
     private String author;
     private String title;
     private String description;

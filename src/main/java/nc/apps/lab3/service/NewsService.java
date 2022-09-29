@@ -1,19 +1,24 @@
 package nc.apps.lab3.service;
 
 import nc.apps.lab3.configs.NewsSettings;
+import nc.apps.lab3.model.Article;
 import nc.apps.lab3.model.DataNewsType;
 import nc.apps.lab3.model.request.DataRequest;
 import nc.apps.lab3.model.response.DataResponse;
 import nc.apps.lab3.util.HttpUtil;
 import nc.apps.lab3.util.JSONUtil;
+import nc.apps.lab3.util.WordDocument;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +32,9 @@ public class NewsService {
 
     @Autowired
     HttpUtil httpUtil;
+
+    @Autowired
+    FileStorageService fileStorageService;
 
     @Async
     public CompletableFuture<DataResponse> getNews(DataRequest request, DataNewsType type) {
@@ -72,4 +80,39 @@ public class NewsService {
         return responseList;
     }
 
+    public String writeArticleToFile(Article article) throws IOException {
+        Path path = fileStorageService.getPath();
+
+        File newFile = new File(path.toString(), "Article_"+article.getId()+".doc");
+        try {
+            if (newFile.exists()) {
+                newFile.delete();
+            }
+            newFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String imageName = null;
+        try {
+            imageName = httpUtil.saveImage(article.getUrlToImage(),path,article.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        WordDocument wordDocument = new WordDocument();
+        wordDocument.addTitle(article.getAuthor());
+        wordDocument.addSubTitle(article.getTitle());
+        wordDocument.addText(article.getDescription());
+
+        Path imagePath = fileStorageService.getPath().resolve(imageName);
+        /*try {
+            wordDocument.addImage(imagePath);
+        } catch (InvalidFormatException | URISyntaxException e) {
+            e.printStackTrace();
+        }*/
+        wordDocument.writeToFile(newFile.getAbsolutePath());
+
+        return newFile.getName();
+    }
 }

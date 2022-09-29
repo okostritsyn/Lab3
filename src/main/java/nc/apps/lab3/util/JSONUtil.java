@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 public class JSONUtil {
 
@@ -153,6 +154,9 @@ public class JSONUtil {
 
     public static Article parseJsonArticle(JSONObject jsonObject) {
         Article article = new Article();
+
+        UUID uniqueKey = UUID.randomUUID();
+        article.setId(uniqueKey.toString());
 
         Iterator<String> iterator = jsonObject.keys();
 
